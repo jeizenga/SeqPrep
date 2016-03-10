@@ -80,6 +80,7 @@ void help ( char *prog_name ) {
   fprintf(stderr, "\t-o <minimum overall base pair overlap to merge two reads; default = %d>\n", DEF_OL2MERGE_READS );
   fprintf(stderr, "\t-m <maximum fraction of good quality mismatching bases to overlap reads; default = %f>\n", DEF_MAX_MISMATCH_READS );
   fprintf(stderr, "\t-n <minimum fraction of matching bases to overlap reads; default = %f>\n", DEF_MIN_MATCH_READS );
+    fprintf(stderr, "Optional arguments for rejecting unmerged sequences with adapter primers\n");
     fprintf(stderr, "\t-d <cutoff edit distance for rejection sequences; default = %d>\n", DEF_LEVENSHTEIN_DIST);
     fprintf(stderr, "\t-C <first read rejection sequence; default = %s>\n", DEF_FORWARD_UNIVERSAL_ADAPTER);
     fprintf(stderr, "\t-D <second read rejection sequence; default = %s>\n", DEF_REVERSE_UNIVERSAL_ADAPTER);
@@ -190,7 +191,7 @@ int main( int argc, char* argv[] ) {
     help(argv[0]);
   }
   int req_args = 0;
-  while( (ich=getopt( argc, argv, "f:r:1:2:3:4:q:A:s:y:B:O:E:x:M:N:L:o:m:b:w:W:p:P:X:Q:t:e:Z:n:6ghz" )) != -1 ) {
+  while( (ich=getopt( argc, argv, "f:r:1:2:3:4:q:A:s:y:B:O:E:x:M:N:L:o:m:b:w:W:p:P:X:Q:t:e:Z:n:d:C:D:6ghz" )) != -1 ) {
     switch( ich ) {
 
     //REQUIRED ARGUMENTS
