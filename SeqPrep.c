@@ -32,6 +32,11 @@
 //#define DEF_REVERSE_PRIMER ("AGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGT")
 #define DEF_FORWARD_PRIMER ("AGATCGGAAGAGCGGTTCAG")
 #define DEF_REVERSE_PRIMER ("AGATCGGAAGAGCGTCGTGT")
+#define DEF_FORWARD_UNIVERSAL_ADAPTER ("ATCTCGTATGCCGTCTTCTGCTTG")
+#define DEF_REVERSE_UNIVERSAL_ADAPTER ("GATCTCGGTGGTCGCCGTATCATT")
+#define DEF_LEVENSHTEIN_DIST (1)
+
+
 char maximum_quality = MAX_QUAL;
 void help ( char *prog_name ) {
   fprintf(stderr, "\n\nUsage:\n%s [Required Args] [Options]\n",prog_name );
@@ -75,7 +80,10 @@ void help ( char *prog_name ) {
   fprintf(stderr, "\t-o <minimum overall base pair overlap to merge two reads; default = %d>\n", DEF_OL2MERGE_READS );
   fprintf(stderr, "\t-m <maximum fraction of good quality mismatching bases to overlap reads; default = %f>\n", DEF_MAX_MISMATCH_READS );
   fprintf(stderr, "\t-n <minimum fraction of matching bases to overlap reads; default = %f>\n", DEF_MIN_MATCH_READS );
-  fprintf(stderr, "\n");
+    fprintf(stderr, "\t-d <cutoff edit distance for rejection sequences; default = %d>\n", DEF_LEVENSHTEIN_DIST);
+    fprintf(stderr, "\t-C <first read rejection sequence; default = %s>\n", DEF_FORWARD_UNIVERSAL_ADAPTER);
+    fprintf(stderr, "\t-D <second read rejection sequence; default = %s>\n", DEF_REVERSE_UNIVERSAL_ADAPTER);
+    
   exit( 1 );
 }
 
@@ -170,6 +178,13 @@ int main( int argc, char* argv[] ) {
   char untrim_fqual[MAX_SEQ_LEN+1];
   char untrim_rseq[MAX_SEQ_LEN+1];
   char untrim_rqual[MAX_SEQ_LEN+1];
+    
+  int max_levenshtein_dist = DEF_LEVENSHTEIN_DIST;
+  bool reject_universal_adapter = false;
+  char f_universal_adapter[MAX_SEQ_LEN+1];
+  char r_universal_adapter[MAX_SEQ_LEN+1];
+  strcpy(f_universal_adapter, DEF_FORWARD_UNIVERSAL_ADAPTER);
+  strcpy(r_universal_adapter, DEF_REVERSE_UNIVERSAL_ADAPTER);
   /* No args - help!  */
   if ( argc == 1 ) {
     help(argv[0]);
@@ -297,8 +312,21 @@ int main( int argc, char* argv[] ) {
     case 'x':
       max_pretty_print = atol(optarg);
       break;
-
-
+            
+    // REJECT SEQUENCES WITH UNIVERSAL ADAPTER
+    case 'd':
+      max_levenshtein_dist = atoi(optarg);
+      reject_universal_adapter = true;
+      break;
+            
+    case 'C':
+      strcpy(f_universal_adapter,optarg);
+      reject_universal_adapter = true;
+      break;
+    case 'D':
+      strcpy(r_universal_adapter,optarg);
+      reject_universal_adapter = true;
+      break;
     default :
       help(argv[0]);
     }
@@ -328,6 +356,9 @@ int main( int argc, char* argv[] ) {
   //get length of forward and reverse primers
   int forward_primer_len = strlen(forward_primer);
   int reverse_primer_len = strlen(reverse_primer);
+
+  int f_universal_adapter_len = strlen(f_universal_adapter);
+  int r_universal_adapter_len = strlen(r_universal_adapter);
 
 
   gzFile ffq = fileOpen(forward_fn, "r");
@@ -597,12 +628,31 @@ int main( int argc, char* argv[] ) {
         }else{
           //no significant overlap so just write them
           if(strlen(sqp->fseq) >= min_read_len &&
-              strlen(sqp->fqual) >= min_read_len &&
-              strlen(sqp->rseq) >= min_read_len &&
-              strlen(sqp->rqual) >= min_read_len){
-            write_fastq(ffqw, sqp->fid, sqp->fseq, sqp->fqual);
-            write_fastq(rfqw, sqp->rid, sqp->rseq, sqp->rqual);
+            strlen(sqp->fqual) >= min_read_len &&
+            strlen(sqp->rseq) >= min_read_len &&
+            strlen(sqp->rqual) >= min_read_len){
+              bool reject_pair = false;
+              if (reject_universal_adapter) {
+                  reject_pair = (substr_is_within_levenshtein_dist(sqp->fseq, f_universal_adapter,
+                                                                   sqp->flen, f_universal_adapter_len,
+                                                                   max_levenshtein_dist) ||
+                                 substr_is_within_levenshtein_dist(sqp->rseq, r_universal_adapter,
+                                                                   sqp->rlen, r_universal_adapter_len,
+                                                                   max_levenshtein_dist));
+              }
+              if (reject_pair) {
+                  num_discarded++;
+                  if(write_discard){
+                      write_fastq(dffqw, sqp->fid, untrim_fseq, untrim_fqual);
+                      write_fastq(drfqw, sqp->rid, untrim_rseq, untrim_rqual);
+                  }
+              }
+              else {
+                  write_fastq(ffqw, sqp->fid, sqp->fseq, sqp->fqual);
+                  write_fastq(rfqw, sqp->rid, sqp->rseq, sqp->rqual);
+              }
           }else{
+              
             num_discarded++;
             if(write_discard){
               write_fastq(dffqw, sqp->fid, untrim_fseq, untrim_fqual);
@@ -618,8 +668,26 @@ int main( int argc, char* argv[] ) {
             strlen(sqp->fqual) >= min_read_len &&
             strlen(sqp->rseq) >= min_read_len &&
             strlen(sqp->rqual) >= min_read_len){
-          write_fastq(ffqw, sqp->fid, sqp->fseq, sqp->fqual);
-          write_fastq(rfqw, sqp->rid, sqp->rseq, sqp->rqual);
+            bool reject_pair = false;
+            if (reject_universal_adapter) {
+                reject_pair =  (substr_is_within_levenshtein_dist(sqp->fseq, f_universal_adapter,
+                                                                  sqp->flen, f_universal_adapter_len,
+                                                                  max_levenshtein_dist) ||
+                                substr_is_within_levenshtein_dist(sqp->rseq, r_universal_adapter,
+                                                                  sqp->rlen, r_universal_adapter_len,
+                                                                  max_levenshtein_dist));
+            }
+            if (reject_pair) {
+                num_discarded++;
+                if(write_discard){
+                    write_fastq(dffqw, sqp->fid, untrim_fseq, untrim_fqual);
+                    write_fastq(drfqw, sqp->rid, untrim_rseq, untrim_rqual);
+                }
+            }
+            else {
+                write_fastq(ffqw, sqp->fid, sqp->fseq, sqp->fqual);
+                write_fastq(rfqw, sqp->rid, sqp->rseq, sqp->rqual);
+            }
         }else{
           num_discarded++;
           if(write_discard){

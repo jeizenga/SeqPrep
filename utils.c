@@ -7,7 +7,6 @@
 #include "stdaln.h"
 #include "utils.h"
 
-
 SQP SQP_init(){
   //allocate an SQP
   return (SQP) malloc(sizeof(Sqp));
@@ -1168,3 +1167,96 @@ inline void rev_qual( char q[], int len ) {
     q[len-(i+1)] = tmp_q;
   }
 }
+
+//// for debugging
+//void print_matrix(int* A, const char* subj_str, const char* query_str, int subj_len, int query_len) {
+//    
+//    for (int j = 0; j < subj_len; j++) {
+//        printf("\t%c", subj_str[j]);
+//    }
+//    printf("\n");
+//    
+//    for (int i = 0; i < query_len; i++) {
+//        printf("%c\t", query_str[i]);
+//        for (int j = 0; j < subj_len; j++) {
+//            printf("%d\t", A[i * subj_len + j]);
+//        }
+//        printf("\n");
+//    }
+//    printf("\n");
+//}
+
+bool substr_is_within_levenshtein_dist(const char* subj_str, const char* query_str, size_t subj_len,
+                                       size_t query_len, int max_distance) {
+    
+    int matrix_len = subj_len * query_len;
+    int* matrix = (int*) malloc(sizeof(int) * matrix_len);
+    
+    for (int j = 0; j < subj_len; j++) {
+        if (subj_str[j] == query_str[0]) {
+            matrix[j] = 0;
+        }
+        else {
+            matrix[j] = 1;
+        }
+    }
+    
+    for (int i = 1; i < query_len; i++) {
+        matrix[i * subj_len] = matrix[(i - 1) * subj_len] + 1;
+    }
+    
+    int dist;
+    int left_dist;
+    int up_dist;
+    bool contains_viable_paths;
+    for (int i = 1; i < query_len; i++) {
+        contains_viable_paths = false;
+        for (int j = 1; j < subj_len; j++) {
+            dist = matrix[(i - 1) * subj_len + j - 1];
+            if (subj_str[j] != query_str[i]) {
+                dist++;
+            }
+            left_dist = matrix[i * subj_len + j - 1];
+            up_dist = matrix[(i - 1) * subj_len + j];
+            if (dist > left_dist + 1) {
+                dist = left_dist + 1;
+            }
+            if (dist > up_dist + 1) {
+                dist = up_dist + 1;
+            }
+            matrix[i * subj_len + j] = dist;
+            if (dist <= max_distance) {
+                contains_viable_paths = true;
+            }
+        }
+        if (!contains_viable_paths) {
+            free(matrix);
+            return false;
+        }
+    }
+    
+    // optimizations: don't fill out irrelevant off diagonals
+    // push relevant paths forward prospectively rather than check high distance paths retrospectively
+    
+    bool return_val = false;
+    for (int i = (query_len - 1) * subj_len; i < matrix_len; i++) {
+        if (matrix[i] <= max_distance) {
+            return_val = true;
+            break;
+        }
+    }
+    
+    free(matrix);
+    return return_val;
+}
+
+
+
+
+
+
+
+
+
+
+

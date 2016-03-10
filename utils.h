@@ -91,6 +91,8 @@ bool adapter_trim(SQP sqp, size_t min_ol_adapter,
     unsigned short max_mismatch_reads[MAX_SEQ_LEN+1],
     char adj_q_cut,
     bool use_mask);
+bool substr_is_within_levenshtein_dist(const char* subj_str, const char* query_str, size_t subj_len,
+                                       size_t query_len, int max_distance);
 
 #ifndef max
   #define max( a, b ) ( ((a) > (b)) ? (a) : (b) )
