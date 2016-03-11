@@ -4,7 +4,7 @@ COPTS=
 LDFLAGS=-lz -lm
 SOURCES=SeqPrep.c utils.c stdaln.c
 OBJECTS=$(SOURCES:.c=.o)
-EXECUTABLE=SeqPrep
+EXECUTABLE=SeqPrep2
 
 all: $(SOURCES) $(EXECUTABLE)
 
