@@ -81,7 +81,7 @@ void help ( char *prog_name ) {
   fprintf(stderr, "\t-m <maximum fraction of good quality mismatching bases to overlap reads; default = %f>\n", DEF_MAX_MISMATCH_READS );
   fprintf(stderr, "\t-n <minimum fraction of matching bases to overlap reads; default = %f>\n", DEF_MIN_MATCH_READS );
     fprintf(stderr, "Optional Arguments for Rejecting Unmerged Sequences with Adapter Primers\n");
-    fprintf(stderr, "\t-d <cutoff edit distance for rejection sequences; default = %d>\n", DEF_LEVENSHTEIN_DIST);
+    fprintf(stderr, "\t-d <perform sequence match rejection and set cutoff edit distance for rejection sequences; default = %d>\n", DEF_LEVENSHTEIN_DIST);
     fprintf(stderr, "\t-C <first read primer rejection sequence; default = %s>\n", DEF_FORWARD_UNIVERSAL_ADAPTER);
     fprintf(stderr, "\t-D <second read primer rejection sequence; default = %s>\n", DEF_REVERSE_UNIVERSAL_ADAPTER);
     
