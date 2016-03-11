@@ -1168,24 +1168,6 @@ inline void rev_qual( char q[], int len ) {
   }
 }
 
-// for debugging
-void print_matrix(int* A, const char* subj_str, const char* query_str, int subj_len, int query_len) {
-    
-    for (int j = 0; j < subj_len; j++) {
-        printf("\t%c", subj_str[j]);
-    }
-    printf("\n");
-    
-    for (int i = 0; i < query_len; i++) {
-        printf("%c\t", query_str[i]);
-        for (int j = 0; j < subj_len; j++) {
-            printf("%d\t", A[i * subj_len + j]);
-        }
-        printf("\n");
-    }
-    printf("\n");
-}
-
 bool substr_is_within_levenshtein_dist(const char* subj_str, const char* query_str, size_t subj_len,
                                        size_t query_len, int max_distance) {
     
@@ -1230,30 +1212,21 @@ bool substr_is_within_levenshtein_dist(const char* subj_str, const char* query_s
             }
         }
         if (!contains_viable_paths) {
-            //print_matrix(matrix, subj_str, query_str, subj_len, query_len);
             free(matrix);
             return false;
         }
     }
-    //print_matrix(matrix, subj_str, query_str, subj_len, query_len);
     
     // optimizations: don't fill out irrelevant off diagonals
     // push relevant paths forward prospectively rather than check high distance paths retrospectively
     
     bool return_val = false;
-//    int min_val = subj_len + query_len;
-//    printf("finding lev dist\n");
     for (int i = (query_len - 1) * subj_len; i < matrix_len; i++) {
         if (matrix[i] <= max_distance) {
             return_val = true;
             break;
         }
-//        if (min_val < matrix[i]) {
-//            min_val = matrix[i];
-//        }
     }
-    
-//    printf("dist = %d for %s\n", min_val, subj_str);
     
     free(matrix);
     return return_val;
