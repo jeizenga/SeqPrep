@@ -69,7 +69,7 @@ Optional Arguments for Merging:
 
 Optional Arguments for Rejecting Unmerged Sequences with Adapter Primers
 
-	-d <cutoff edit distance for rejection sequences; default = 1>
+	-d <perform sequence match rejection and set cutoff edit distance for rejection sequences; default = 1>
 	-C <first read primer rejection sequence; default = ATCTCGTATGCCGTCTTCTGCTTG>
 	-D <second read primer rejection sequence; default = GATCTCGGTGGTCGCCGTATCATT>
 
