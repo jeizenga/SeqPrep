@@ -80,10 +80,10 @@ void help ( char *prog_name ) {
   fprintf(stderr, "\t-o <minimum overall base pair overlap to merge two reads; default = %d>\n", DEF_OL2MERGE_READS );
   fprintf(stderr, "\t-m <maximum fraction of good quality mismatching bases to overlap reads; default = %f>\n", DEF_MAX_MISMATCH_READS );
   fprintf(stderr, "\t-n <minimum fraction of matching bases to overlap reads; default = %f>\n", DEF_MIN_MATCH_READS );
-    fprintf(stderr, "Optional arguments for rejecting unmerged sequences with adapter primers\n");
+    fprintf(stderr, "Optional Arguments for Rejecting Unmerged Sequences with Adapter Primers\n");
     fprintf(stderr, "\t-d <cutoff edit distance for rejection sequences; default = %d>\n", DEF_LEVENSHTEIN_DIST);
-    fprintf(stderr, "\t-C <first read rejection sequence; default = %s>\n", DEF_FORWARD_UNIVERSAL_ADAPTER);
-    fprintf(stderr, "\t-D <second read rejection sequence; default = %s>\n", DEF_REVERSE_UNIVERSAL_ADAPTER);
+    fprintf(stderr, "\t-C <first read primer rejection sequence; default = %s>\n", DEF_FORWARD_UNIVERSAL_ADAPTER);
+    fprintf(stderr, "\t-D <second read primer rejection sequence; default = %s>\n", DEF_REVERSE_UNIVERSAL_ADAPTER);
     
   exit( 1 );
 }
@@ -322,11 +322,9 @@ int main( int argc, char* argv[] ) {
             
     case 'C':
       strcpy(f_universal_adapter,optarg);
-      reject_universal_adapter = true;
       break;
     case 'D':
       strcpy(r_universal_adapter,optarg);
-      reject_universal_adapter = true;
       break;
     default :
       help(argv[0]);
@@ -612,7 +610,7 @@ int main( int argc, char* argv[] ) {
         if(read_merge(sqp, min_ol_reads, min_match_reads, max_mismatch_reads, qcut)){
           //print merged output
           if(strlen(sqp->merged_seq) >= min_read_len &&
-              strlen(sqp->merged_qual) >= min_read_len){
+             strlen(sqp->merged_qual) >= min_read_len){
             num_merged++;
             write_fastq(mfqw,sqp->fid,sqp->merged_seq,sqp->merged_qual);
             if(pretty_print && num_pretty_print < max_pretty_print){
