@@ -1174,7 +1174,9 @@ bool substr_is_within_levenshtein_dist(const char* subj_str, const char* query_s
     int matrix_len = subj_len * query_len;
     int* matrix = (int*) malloc(sizeof(int) * matrix_len);
     
-    for (int j = 0; j < subj_len; j++) {
+    int i, j;
+    
+    for (j = 0; j < subj_len; j++) {
         if (subj_str[j] == query_str[0]) {
             matrix[j] = 0;
         }
@@ -1183,7 +1185,7 @@ bool substr_is_within_levenshtein_dist(const char* subj_str, const char* query_s
         }
     }
     
-    for (int i = 1; i < query_len; i++) {
+    for (i = 1; i < query_len; i++) {
         matrix[i * subj_len] = matrix[(i - 1) * subj_len] + 1;
     }
     
@@ -1191,9 +1193,9 @@ bool substr_is_within_levenshtein_dist(const char* subj_str, const char* query_s
     int left_dist;
     int up_dist;
     bool contains_viable_paths;
-    for (int i = 1; i < query_len; i++) {
+    for (i = 1; i < query_len; i++) {
         contains_viable_paths = false;
-        for (int j = 1; j < subj_len; j++) {
+        for (j = 1; j < subj_len; j++) {
             dist = matrix[(i - 1) * subj_len + j - 1];
             if (subj_str[j] != query_str[i]) {
                 dist++;
@@ -1221,7 +1223,7 @@ bool substr_is_within_levenshtein_dist(const char* subj_str, const char* query_s
     // push relevant paths forward prospectively rather than check high distance paths retrospectively
     
     bool return_val = false;
-    for (int i = (query_len - 1) * subj_len; i < matrix_len; i++) {
+    for (i = (query_len - 1) * subj_len; i < matrix_len; i++) {
         if (matrix[i] <= max_distance) {
             return_val = true;
             break;
